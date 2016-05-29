@@ -35,3 +35,11 @@ class IloczynNiePustyWezlow(IloczynNiePusty):
     def __str__(self):
         return ' '.join(['Wezly', str(self.wezel1), 'i', str(self.wezel2),
                          'maja czesc wspolna:', str(self.zbior)])
+
+class PropertyError(GISBaseException):
+    def __init__(self, wierzcholek, wlasciwosc):
+        self.wierzcholek = wierzcholek
+        self.wlasciwosc = wlasciwosc
+
+    def __str__(self):
+        return "Brak w wierzcholu " + str(self.wierzcholek) + " wlasciwosci: '" + self.wlasciwosc + "'"
