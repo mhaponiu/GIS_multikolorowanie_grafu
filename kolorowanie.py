@@ -1,5 +1,6 @@
 from graph_tool.all import random_graph, Graph, load_graph, graph_draw
-from Errors import CiagloscError
+from Errors import CiagloscError, CiagloscErrorWezla, IloczynNiePusty, GISBaseException, IloczynNiePustyWezlow
+
 
 class Sprawdzenie(object):
     def __init__(self, graph):
@@ -8,10 +9,19 @@ class Sprawdzenie(object):
 
     def sprawdz(self):
         # type: () -> bool
-        pass
+        try:
+            for wezel in self.graph.vertices():
+                self._sprawdz_sasiadow(wezel)
+        except GISBaseException as e:
+            raise e
+        return True
 
     def _ciaglosc_przedzialu(self, lista):
-        return sorted(lista) == range(min(lista), max(lista)+1)
+        posortowana = sorted(lista)
+        if posortowana == range(min(lista), max(lista)+1):
+            return True
+        else:
+            raise CiagloscError(posortowana)
 
     def _przypisane_kolory(self, wezel):
         dziwna_lista = self.graph.vertex_properties['przypisane_kolory'][wezel]
@@ -25,7 +35,29 @@ class Sprawdzenie(object):
         return dobra_lista
 
     def _sprawdz_sasiadow(self, wezel):
-        pass
+        try:
+            moje_kolory = self._przypisane_kolory(wezel)
+            self._ciaglosc_przedzialu(moje_kolory)
+            for sasiad in wezel.all_neighbours():
+                self._sprawdz_wezel(sasiad, moje_kolory)
+        except CiagloscError as e:
+            raise CiagloscErrorWezla(wezel, e.przedzial)
+        except IloczynNiePusty as e:
+            raise IloczynNiePustyWezlow(e.zbior, sasiad, wezel)
+
+        # except CiagloscError or IloczynNiePusty as e:
+        #     raise e
+        return True
+
+    def _sprawdz_wezel(self, sasiad, kolory):
+        zbior_kolorow_sasiada = set(self._przypisane_kolory(sasiad))
+        iloczyn = zbior_kolorow_sasiada & set(kolory)
+        zbior_pusty = set()
+        if(iloczyn == zbior_pusty):
+            return True
+        else:
+            raise IloczynNiePusty(iloczyn)
+
 
     def dlugosc_dziur_grafu(self):
         pass
@@ -56,4 +88,3 @@ class Kolorowanie(object):
             except ValueError:
                 continue
         return dobra_lista
-
