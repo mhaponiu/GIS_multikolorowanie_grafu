@@ -1,0 +1,15 @@
+graph G {
+0 [liczba_kolorow="1", przypisane_kolory="6"];
+1 [liczba_kolorow="3", przypisane_kolory="1, 2, 3"];
+2 [liczba_kolorow="2", przypisane_kolory="4, 5"];
+3 [liczba_kolorow="2", przypisane_kolory="4, 5"];
+4 [liczba_kolorow="1", przypisane_kolory="4"];
+5 [liczba_kolorow="1", przypisane_kolory="4"];
+0--1 ;
+1--2 ;
+1--3 ;
+1--5 ;
+2--0 ;
+4--0 ;
+4--1 ;
+}

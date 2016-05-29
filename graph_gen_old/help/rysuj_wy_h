@@ -1,0 +1,9 @@
+usage: gen_random.py rysuj_wy [-h] [-I] [-PNG w h] Input
+
+positional arguments:
+  Input              nazwa pliku wynikowego pokolorowanego (type: str)
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -I, --interactive  wlacza interaktywny tryb przegladania grafu
+  -PNG w h           drukuje plik png o nazwie argumentu pozycyjnego

@@ -1,0 +1,11 @@
+usage: gen_random.py [-h] {generuj,rysuj_we,rysuj_wy} ...
+
+positional arguments:
+  {generuj,rysuj_we,rysuj_wy}
+                        tryby pracy, [tryb] --help for more info
+    generuj             generuje graf wejsciowy
+    rysuj_we            rysuje graf wejsciowy
+    rysuj_wy            rysuje graf wynikowy
+
+optional arguments:
+  -h, --help            show this help message and exit
