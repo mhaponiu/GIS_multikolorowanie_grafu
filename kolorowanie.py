@@ -5,8 +5,8 @@ from graph_tool.all import random_graph, Graph, load_graph, graph_draw, \
 
 import numpy
 
-from Errors import CiagloscError, CiagloscErrorWezla, IloczynNiePusty, GISBaseException, IloczynNiePustyWezlow, \
-    PropertyError
+from Errors import CiagloscError, CiagloscErrorWezla, IloczynNiePusty,\
+    GISBaseException, IloczynNiePustyWezlow, PropertyError
 
 
 class Sprawdzenie(object):
@@ -132,7 +132,10 @@ class Kolorowanie(object):
 
     def sprawdzenie(self):
         # type: () -> bool
-        return self.spr.sprawdz()
+        try:
+            return self.spr.sprawdz()
+        except GISBaseException as e:
+            raise e
 
     def _przypisane_kolory(self, wezel):
         try:
@@ -150,6 +153,85 @@ class Kolorowanie(object):
 
     def _liczba_kolorow(self, wezel):
         try:
-            return self.graph.vertex_properties['liczba_kolorow'][wezel]
-        except PropertyError as e:
-            raise e
+            return int(self.graph.vertex_properties['liczba_kolorow'][wezel])
+        except KeyError as e:
+            raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
+
+    def koloruj(self):
+        self._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
+        lista_wezlow = list(self.graph.vertices())
+        self._seria_sortowan(lista_wezlow)
+        # TODO
+
+    def _seria_sortowan(self, lista_wezlow):
+        self._sortuj_liczba_kolorow(lista_wezlow)
+        self._sortuj_stopien(lista_wezlow)
+
+    def zapisz(self, output_file):
+        posplitowane = output_file.split('.')
+        if len(posplitowane) == 1:
+            output_file = output_file + '.dot'
+        else:
+            output_file = ('_').join(posplitowane[:-1])
+            if posplitowane[-1] == 'dot':
+                output_file = output_file + '.dot'
+            else:
+                output_file = output_file + '.xml'
+        self.graph.save(output_file)
+
+    def _dodaj_i_inicjuj_wlasciwosc_przypisane_kolory(self):
+        self.graph.vertex_properties['przypisane_kolory'] = self.graph.new_vertex_property('vector<int>')
+        # for v in self.graph.vertices():
+        #     self.graph.vertex_properties['przypisane_kolory'][v] = []
+
+    def _sortuj_liczba_kolorow(self, lista_wierzcholkow, od_najwiekszego=True):
+        lista_wierzcholkow.sort(reverse=od_najwiekszego, key=lambda v: self.graph.vertex_properties['liczba_kolorow'][v])
+
+    def _sortuj_stopien(self, lista_wierzcholkow, od_najwiekszego=True):
+        lista_wierzcholkow.sort(reverse=od_najwiekszego, key=lambda v: len(list(v.all_edges())))
+
+    def _koloruj_wierzcholek(self, wezel):
+        liczba_kolorow = self._liczba_kolorow(wezel)
+        lista_list_kolorow_sasiadow = self._listy_przypisanych_kolorow_sasiadow(wezel)
+        zbior_kolorow_sasiadow = self._zbior(lista_list_kolorow_sasiadow)
+        try:
+            maximum = max(zbior_kolorow_sasiadow)
+            kolory = range(maximum+1, maximum+1+liczba_kolorow)
+            for dziura in self._generuj_dziure(zbior_kolorow_sasiadow):
+                if len(dziura) <= liczba_kolorow:
+                    kolory = dziura
+                    break
+            return kolory
+        except ValueError as e:
+            return range(1, liczba_kolorow+1)
+
+
+    def _generuj_dziure(self, zbior_kolorow_sasiadow):
+        try:
+            maximum = max(zbior_kolorow_sasiadow)
+        except ValueError:
+            return
+        dziura = []
+        for i in xrange(1, maximum+1):
+            if i in zbior_kolorow_sasiadow:
+                if dziura == []:
+                    continue
+                else:
+                    yield dziura
+                    dziura = []
+
+            else:
+                dziura.append(i)
+
+    def _zbior(self, lista_list):
+        zbior = set()
+        for lista in lista_list:
+            for i in lista:
+                zbior.add(i)
+        return zbior
+
+    def _listy_przypisanych_kolorow_sasiadow(self, wezel):
+        ret_lista = []
+        for v in wezel.all_neighbours():
+            ret_lista.append(self._przypisane_kolory(v))
+        return ret_lista
