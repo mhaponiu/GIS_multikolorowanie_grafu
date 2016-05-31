@@ -345,7 +345,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', help="nazwa pliku wynikowego, (type: %(type)s)"
                         , type=str, default='')
     parser.add_argument('-c', '--check', action='store_true',
-                        help='wykonuje sprawdzenie poprawnosci pokolorowania pliku')
+                        help='wykonuje sprawdzenie poprawnosci pokolorowania grafu')
     parser.add_argument('-s', '--stat', action='store_true',
                         help='podaje dane statystyczne grafu')
     parser.add_argument('--INFO', action='store_true',
