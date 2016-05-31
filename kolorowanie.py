@@ -4,7 +4,7 @@ from graph_tool.all import random_graph, Graph, load_graph, graph_draw, \
     all_shortest_paths, shortest_distance, global_clustering, local_clustering, \
     vertex_average
 
-import numpy, argparse, sys
+import numpy, argparse, sys, logging
 
 from Errors import CiagloscError, CiagloscErrorWezla, IloczynNiePusty,\
     GISBaseException, IloczynNiePustyWezlow, PropertyError, LiczebnoscKolorowError
@@ -238,7 +238,8 @@ class Kolorowanie(object):
         self._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
         lista_wezlow = list(self.graph.vertices())
         self._seria_sortowan(lista_wezlow)
-        # for i in range(0, len(lista_wezlow)):
+        log_100 = len(lista_wezlow)
+        log_x = log_100
         while lista_wezlow != []:
             wezel = lista_wezlow[0]
             # print 'koloruje ', lista_wezlow[wezel]
@@ -246,6 +247,8 @@ class Kolorowanie(object):
             self.graph.vertex_properties['przypisane_kolory'][wezel] = kolory
             lista_wezlow.remove(lista_wezlow[0])
             self._seria_sortowan(lista_wezlow)
+            log_x = log_x - 1
+            logging.info(" postęp: " + str(int(100 - log_x * 100 / log_100)) + "%")
 
 
 
@@ -345,9 +348,14 @@ if __name__ == '__main__':
                         help='wykonuje sprawdzenie poprawnosci pokolorowania pliku')
     parser.add_argument('-s', '--stat', action='store_true',
                         help='podaje dane statystyczne grafu')
+    parser.add_argument('--INFO', action='store_true',
+                        help='wyswietla dodatkowe informacje w trakcie wykonywania zadania')
     zparsowane = parser.parse_args()
 
     k=Kolorowanie(file_input=zparsowane.Input_file)
+
+    if zparsowane.INFO:
+        logging.basicConfig(level=logging.INFO)
 
     if zparsowane.output:
         k.koloruj()
