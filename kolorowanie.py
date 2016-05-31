@@ -1,12 +1,13 @@
 # coding=utf-8
+from collections import OrderedDict
 from graph_tool.all import random_graph, Graph, load_graph, graph_draw, \
     all_shortest_paths, shortest_distance, global_clustering, local_clustering, \
     vertex_average
 
-import numpy
+import numpy, argparse, sys
 
 from Errors import CiagloscError, CiagloscErrorWezla, IloczynNiePusty,\
-    GISBaseException, IloczynNiePustyWezlow, PropertyError
+    GISBaseException, IloczynNiePustyWezlow, PropertyError, LiczebnoscKolorowError
 
 
 class Sprawdzenie(object):
@@ -16,12 +17,29 @@ class Sprawdzenie(object):
 
     def sprawdz(self):
         # type: () -> bool
+        for wezel in self.graph.vertices():
+            self._liczebnosc_przypisanych_kolorow(wezel)
+            self._sprawdz_sasiadow(wezel)
+        return True
+
+    def _liczebnosc_przypisanych_kolorow(self, wezel):
         try:
-            for wezel in self.graph.vertices():
-                self._sprawdz_sasiadow(wezel)
+            powinno_byc = self._liczba_kolorow(wezel)
+            jest_przypisanych = len(self._przypisane_kolory(wezel))
         except GISBaseException as e:
             raise e
-        return True
+        if powinno_byc == jest_przypisanych:
+            return True
+        else:
+            raise LiczebnoscKolorowError(wezel, powinno_byc, jest_przypisanych)
+
+
+
+    def _liczba_kolorow(self, wezel):
+        try:
+            return int(self.graph.vertex_properties['liczba_kolorow'][wezel])
+        except KeyError as e:
+            raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
 
     def _ciaglosc_przedzialu(self, lista):
         posortowana = sorted(lista)
@@ -31,18 +49,28 @@ class Sprawdzenie(object):
             raise CiagloscError(posortowana)
 
     def _przypisane_kolory(self, wezel):
+        # try:
+        #     dziwna_lista = self.graph.vertex_properties['przypisane_kolory'][wezel]
+        #     #dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
+        # except KeyError as e:
+        #     raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
+        # dobra_lista = []
+        # for i in dziwna_lista:
+        #     try:
+        #         dobra_lista.append(int(i))
+        #     except ValueError:
+        #         continue
+        # return dobra_lista
         try:
             dziwna_lista = self.graph.vertex_properties['przypisane_kolory'][wezel]
-            #dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
+            # dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
         except KeyError as e:
             raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
-        dobra_lista = []
-        for i in dziwna_lista:
-            try:
-                dobra_lista.append(int(i))
-            except ValueError:
-                continue
-        return dobra_lista
+        try:
+            splited = dziwna_lista.split(', ')
+        except AttributeError:
+            return dziwna_lista  # dobra juz jest
+        return [int(kolor_string) for kolor_string in splited]
 
     def _sprawdz_sasiadow(self, wezel):
         try:
@@ -72,32 +100,63 @@ class StatInfo(object):
     def __init__(self, graph):
         self.graph = graph
 
-    def srednia_kolorow(self):
-        pass
+    def _przypisane_kolory(self, wezel):
+        # try:
+        #     dziwna_lista = self.graph.vertex_properties['przypisane_kolory'][wezel]
+        #     # dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
+        # except KeyError as e:
+        #     raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
+        # dobra_lista = []
+        # for i in dziwna_lista:
+        #     try:
+        #         dobra_lista.append(int(i))
+        #     except ValueError:
+        #         continue
+        # return dobra_lista
+        try:
+            dziwna_lista = self.graph.vertex_properties['przypisane_kolory'][wezel]
+            # dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
+        except KeyError as e:
+            raise PropertyError(wierzcholek=wezel, wlasciwosc=e.message[1])
+        try:
+            splited = dziwna_lista.split(', ')
+        except AttributeError:
+            return dziwna_lista #dobra juz jest
+        return [int(kolor_string) for kolor_string in splited]
 
-    def mediana_kolorow(self):
-        pass
-
-    def suma_dziur_grafu(self):
-        pass
-
-    def min_kolor(self):
-        pass
+    def srednia_liczba_kolorow(self):
+        lista = []
+        for v in self.graph.vertices():
+            try:
+                liczba = self.graph.vertex_properties['liczba_kolorow'][v]
+                lista.append(int(liczba))
+            # dziwna lista bo zwraca ['1', ',', ' ', '2', ',', ' ', '3'] zamiast [1,2,3]
+            except KeyError as e:
+                raise PropertyError(wierzcholek=v, wlasciwosc=e.message[1])
+        return numpy.average(lista)
 
     def max_kolor(self):
-        pass
+        maximum = 0
+        for v in self.graph.vertices():
+            lista_max = self._przypisane_kolory(v)
+            lista_max.append(maximum)
+            maximum = max(lista_max)
+        return maximum
 
     def liczba_krawedzi(self):
-        pass
-
-    def _max_liczba_krawedzi(self):
-        pass
+        suma = 0
+        for v in self.graph.vertices():
+            suma = suma + len(list(v.all_edges()))
+        return suma/2
 
     def liczba_wierzcholkow(self):
-        pass
+        return len(list(self.graph.vertices()))
 
     def sredni_stopien_wierzcholka(self):
-        pass
+        lista_stopni = []
+        for v in self.graph.vertices():
+            lista_stopni.append(len(list(v.all_edges())))
+        return numpy.average(lista_stopni)
 
     def sredni_wspolczynnik_klasteryzacji(self):
         '''The local clustering coefficient [watts-collective-1998] ci is defined as
@@ -119,6 +178,23 @@ class StatInfo(object):
             srednie.append(len_array)
         return numpy.average(srednie)
 
+    def statystyki(self):
+        # stat = OrderedDict()
+        stat = {}
+        stat['sredni_wspolczynnik_klasteryzacji'] = self.sredni_wspolczynnik_klasteryzacji()
+        stat['srednia_dlugosc_sciezki'] = self.srednia_dlugosc_sciezki()
+        stat['liczba_wierzcholkow'] = self.liczba_wierzcholkow()
+        stat['liczba_krawedzi'] = self.liczba_krawedzi()
+        try:
+            stat['max_kolor'] = self.max_kolor()
+        except PropertyError:
+            pass
+        try:
+            stat['srednia_liczba_kolorow'] = self.srednia_liczba_kolorow()
+        except PropertyError:
+            pass
+        stat['sredni_stopien_wierzcholka'] = self.sredni_stopien_wierzcholka()
+        return stat
 
 
 
@@ -129,13 +205,14 @@ class Kolorowanie(object):
     def __init__(self, file_input):
         self.graph = load_graph(file_input)
         self.spr = Sprawdzenie(self.graph)
+        self.stat = StatInfo(self.graph)
 
     def sprawdzenie(self):
         # type: () -> bool
-        try:
-            return self.spr.sprawdz()
-        except GISBaseException as e:
-            raise e
+        return self.spr.sprawdz()
+
+    def statystyki(self):
+        return self.stat.statystyki()
 
     def _przypisane_kolory(self, wezel):
         try:
@@ -161,11 +238,22 @@ class Kolorowanie(object):
         self._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
         lista_wezlow = list(self.graph.vertices())
         self._seria_sortowan(lista_wezlow)
-        # TODO
+        # for i in range(0, len(lista_wezlow)):
+        while lista_wezlow != []:
+            wezel = lista_wezlow[0]
+            # print 'koloruje ', lista_wezlow[wezel]
+            kolory = self._koloruj_wierzcholek(wezel)
+            self.graph.vertex_properties['przypisane_kolory'][wezel] = kolory
+            lista_wezlow.remove(lista_wezlow[0])
+            self._seria_sortowan(lista_wezlow)
+
+
 
     def _seria_sortowan(self, lista_wezlow):
         self._sortuj_liczba_kolorow(lista_wezlow)
         self._sortuj_stopien(lista_wezlow)
+        self._sortuj_suma_przypisanych_kolorow_sasiadow(lista_wezlow)
+
 
     def zapisz(self, output_file):
         posplitowane = output_file.split('.')
@@ -184,11 +272,22 @@ class Kolorowanie(object):
         # for v in self.graph.vertices():
         #     self.graph.vertex_properties['przypisane_kolory'][v] = []
 
-    def _sortuj_liczba_kolorow(self, lista_wierzcholkow, od_najwiekszego=True):
-        lista_wierzcholkow.sort(reverse=od_najwiekszego, key=lambda v: self.graph.vertex_properties['liczba_kolorow'][v])
+    def _sortuj_liczba_kolorow(self, lista_wezlow, od_najwiekszego=True):
+        lista_wezlow.sort(reverse=od_najwiekszego, key=lambda v: self.graph.vertex_properties['liczba_kolorow'][v])
 
-    def _sortuj_stopien(self, lista_wierzcholkow, od_najwiekszego=True):
-        lista_wierzcholkow.sort(reverse=od_najwiekszego, key=lambda v: len(list(v.all_edges())))
+    def _sortuj_stopien(self, lista_wezlow, od_najwiekszego=True):
+        lista_wezlow.sort(reverse=od_najwiekszego, key=lambda v: len(list(v.all_edges())))
+
+    def _sortuj_suma_przypisanych_kolorow_sasiadow(self, lista_wezlow, od_najwiekszego=True):
+        lista_wezlow.sort(reverse=od_najwiekszego, key=self._suma_kolorow_sasiadow)
+
+
+    def _suma_kolorow_sasiadow(self,wezel):
+        suma = 0
+        for w in wezel.all_neighbours():
+            suma = suma + len(self._przypisane_kolory(w))
+        # print 'wezel',str(wezel), ' ',suma
+        return suma
 
     def _koloruj_wierzcholek(self, wezel):
         liczba_kolorow = self._liczba_kolorow(wezel)
@@ -198,8 +297,8 @@ class Kolorowanie(object):
             maximum = max(zbior_kolorow_sasiadow)
             kolory = range(maximum+1, maximum+1+liczba_kolorow)
             for dziura in self._generuj_dziure(zbior_kolorow_sasiadow):
-                if len(dziura) <= liczba_kolorow:
-                    kolory = dziura
+                if len(dziura) >= liczba_kolorow:
+                    kolory = dziura[:liczba_kolorow]
                     break
             return kolory
         except ValueError as e:
@@ -235,3 +334,31 @@ class Kolorowanie(object):
         for v in wezel.all_neighbours():
             ret_lista.append(self._przypisane_kolory(v))
         return ret_lista
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    parser.add_argument('Input_file')
+    parser.add_argument('-o', '--output', help="nazwa pliku wynikowego, (type: %(type)s)"
+                        , type=str, default='')
+    parser.add_argument('-c', '--check', action='store_true',
+                        help='wykonuje sprawdzenie poprawnosci pokolorowania pliku')
+    parser.add_argument('-s', '--stat', action='store_true',
+                        help='podaje dane statystyczne grafu')
+    zparsowane = parser.parse_args()
+
+    k=Kolorowanie(file_input=zparsowane.Input_file)
+
+    if zparsowane.output:
+        k.koloruj()
+        k.zapisz(zparsowane.output)
+
+    if zparsowane.check:
+        k.sprawdzenie()
+        print "\nGraf został sprawdzony:\n\twynik pozytywny"
+
+    if zparsowane.stat:
+        print "\nStatystyki:"
+        stat =  k.statystyki()
+        for (key, value) in zip(stat.keys(), stat.values()):
+            print ' '.join(['\t', key, ':', str(value)])

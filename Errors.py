@@ -42,4 +42,13 @@ class PropertyError(GISBaseException):
         self.wlasciwosc = wlasciwosc
 
     def __str__(self):
-        return "Brak w wierzcholu " + str(self.wierzcholek) + " wlasciwosci: '" + self.wlasciwosc + "'"
+        return "Brak w wezle " + str(self.wierzcholek) + " wlasciwosci: '" + self.wlasciwosc + "'"
+
+class LiczebnoscKolorowError(GISBaseException):
+    def __init__(self, wezel, powinno_byc, jest):
+        self.powinno_byc = powinno_byc
+        self.jest = jest
+        self.wezel = wezel
+
+    def __str__(self):
+        return "W wezle " + str(self.wezel) + " przypisano " + str(self.jest) + '  kolory, a powinno byc ' + str(self.powinno_byc)

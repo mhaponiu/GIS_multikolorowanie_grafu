@@ -6,7 +6,7 @@ from graph_tool.stats import vertex_average
 import numpy
 
 from Errors import CiagloscError, IloczynNiePusty, GISBaseException, IloczynNiePustyWezlow, CiagloscErrorWezla, \
-    PropertyError
+    PropertyError, LiczebnoscKolorowError
 from kolorowanie import Kolorowanie, Sprawdzenie, StatInfo
 
 
@@ -64,6 +64,10 @@ class Sprawdzenie_test(unittest.TestCase):
         wzorzec_zly_nieciagly_przdzial_po = 'dane_testowe/wzorzec_zly_nieciagly_przedzial_po.dot'
         k_zly_nieciagly_przedzial = Kolorowanie(file_input=wzorzec_zly_nieciagly_przdzial_po)
         cls.spr_zly_nieciagly_przedzial = Sprawdzenie(graph=k_zly_nieciagly_przedzial.graph)
+
+        wzorzec_zla_liczebnosc = 'dane_testowe/wzorzec_zla_liczebnosc.dot'
+        k_zla_liczebnosc = Kolorowanie(file_input=wzorzec_zla_liczebnosc)
+        cls.spr_zla_liczebnosc = Sprawdzenie(graph=k_zla_liczebnosc.graph)
 
         wzorzec_przed = 'dane_testowe/wzorzec_przed.dot'
         k_przed = Kolorowanie(wzorzec_przed)
@@ -137,6 +141,9 @@ class Sprawdzenie_test(unittest.TestCase):
         self.assertRaises(IloczynNiePustyWezlow, self.spr_zly_iloczyn.sprawdz)
         # self.spr_zly_iloczyn.sprawdz()
 
+    def test_sprawdz_zla_liczebnosc_przypisanych_kolorow(self):
+        self.assertRaises(LiczebnoscKolorowError, self.spr_zla_liczebnosc.sprawdz)
+
     def test_sprawdz_zly_nieciagly_przedzial(self):
         self.assertRaises(CiagloscErrorWezla, self.spr_zly_nieciagly_przedzial.sprawdz)
         # self.spr_zly_nieciagly_przedzial.sprawdz()
@@ -182,6 +189,15 @@ class StatInfoTest(unittest.TestCase):
         lc = local_clustering(g, undirected=True)
         self.assertEqual(1.0, vertex_average(g, lc)[0])
 
+    def test_statystyki_bez_kolorowania(self):
+        statystyki = self.stat.statystyki()
+        self.assertEqual(6, statystyki['liczba_wierzcholkow'])
+        self.assertEqual(7, statystyki['liczba_krawedzi'])
+        self.assertEqual(6, statystyki['max_kolor'])
+        self.assertAlmostEqual(0.477777777778, statystyki['sredni_wspolczynnik_klasteryzacji'], delta=0.0000001)
+        self.assertAlmostEqual(2.3333333333333335, statystyki['sredni_stopien_wierzcholka'], delta=0.0000001)
+        self.assertAlmostEqual(1.2777777777777777, statystyki['srednia_dlugosc_sciezki'], delta=0.0000001)
+
 
 class KolorowanieTest(unittest.TestCase):
 
@@ -196,17 +212,29 @@ class KolorowanieTest(unittest.TestCase):
         cls.k_przed = Kolorowanie(cls.wzorzec_przed)
         cls.v1_przed = list(cls.k_przed.graph.vertices())[1]
 
-        wzorzec_zly_iloczyn = 'dane_testowe/wzorzec_zly_iloczyn_po.dot'
-        cls.k_zly_iloczyn = Kolorowanie(wzorzec_zly_iloczyn)
+        cls.wzorzec_zly_iloczyn = 'dane_testowe/wzorzec_zly_iloczyn_po.dot'
+        cls.k_zly_iloczyn = Kolorowanie(cls.wzorzec_zly_iloczyn)
         cls.v1_zly_iloczyn = list(cls.k_zly_iloczyn.graph.vertices())[1]
 
-        wzorzec_zly_niecialgy_przedzial = 'dane_testowe/wzorzec_zly_nieciagly_przedzial_po.dot'
-        cls.k_zly_przedzial = Kolorowanie(wzorzec_zly_niecialgy_przedzial)
+        cls.wzorzec_zly_niecialgy_przedzial = 'dane_testowe/wzorzec_zly_nieciagly_przedzial_po.dot'
+        cls.k_zly_przedzial = Kolorowanie(cls.wzorzec_zly_niecialgy_przedzial)
         cls.v1_zly_przedzial = list(cls.k_zly_przedzial.graph.vertices())[1]
 
-        wzorzec_bez_wlasciwosci = 'dane_testowe/wzorzec_bez_wlasciwosci.dot'
-        cls.k_bez_wl = Kolorowanie(wzorzec_bez_wlasciwosci)
+        cls.wzorzec_bez_wlasciwosci = 'dane_testowe/wzorzec_bez_wlasciwosci.dot'
+        cls.k_bez_wl = Kolorowanie(cls.wzorzec_bez_wlasciwosci)
         cls.v1_bez_wl = list(cls.k_bez_wl.graph.vertices())[1]
+
+        cls.wzorzec_po_niepelny = 'dane_testowe/wzorzec_po_niepelny.dot'
+        cls.k_niepelny= Kolorowanie(cls.wzorzec_po_niepelny)
+        cls.v5_niepelny = list(cls.k_niepelny.graph.vertices())[5]
+        cls.v0_niepelny = list(cls.k_niepelny.graph.vertices())[0]
+        cls.v1_niepelny = list(cls.k_niepelny.graph.vertices())[1]
+
+        cls.wzorzec_duze_przed = 'dane_testowe/duze_przed.dot'
+        cls.k_duze_przed = Kolorowanie(cls.wzorzec_duze_przed)
+
+        cls.wzorzec_duze_po = 'dane_testowe/duze_po.dot'
+        cls.k_duze_po = Kolorowanie(cls.wzorzec_duze_po)
 
     def test_liczba_kolorow_pass(self):
         self.assertEqual(3, int(self.k_przed._liczba_kolorow(self.v1_przed)))
@@ -220,6 +248,9 @@ class KolorowanieTest(unittest.TestCase):
     def test_przypisane_kolory_fail(self):
         self.assertRaises(PropertyError, self.k_przed._przypisane_kolory, self.v1_przed)
 
+    def test_przypisane_kolory_puste(self):
+        self.assertEqual(0,len(self.k_niepelny._przypisane_kolory(self.v5_niepelny)))
+
     def test_sprawdzenie_pass(self):
         self.assertTrue(self.k_po.sprawdzenie())
 
@@ -229,9 +260,15 @@ class KolorowanieTest(unittest.TestCase):
     def test_sprawdzenie_fail_przedzial(self):
         self.assertRaises(CiagloscErrorWezla, self.k_zly_przedzial.sprawdzenie)
 
-    @unittest.skip('omijam test zapisu do pliku -> nie smiece plikami\n')
+    @unittest.skip('')
     def test_zapisz(self):
         self.k_po.zapisz('test_zapis')
+
+    @unittest.skip('')
+    def test_zapisz_z_pusta_lista_przypisanych_kolorow(self):
+        k = Kolorowanie(self.wzorzec_przed)
+        k._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
+        k.zapisz('test_zapis2')
 
     def test_dodaj_wlasciwosc_przypisane_kolory(self):
         k = Kolorowanie(self.wzorzec_przed)
@@ -252,6 +289,21 @@ class KolorowanieTest(unittest.TestCase):
         k._sortuj_stopien(lista_wierzch)
         po = [int(str(v)) for v in lista_wierzch]
         self.assertEqual([1,0,2,4,3,5], po)
+
+    def test_suma_kolorow_sasiadow(self):
+        self.assertEqual(6, self.k_po._suma_kolorow_sasiadow(self.v0_po))
+        self.assertEqual(7, self.k_po._suma_kolorow_sasiadow(self.v1_po))
+
+    def test_suma_kolorow_sasiadow2(self):
+        self.assertEqual(3, self.k_niepelny._suma_kolorow_sasiadow(self.v5_niepelny))
+        self.assertEqual(2, self.k_niepelny._suma_kolorow_sasiadow(self.v1_niepelny))
+
+    def test_sortuj_suma_przypisanych_kolorow_sasiadow(self):
+        k = Kolorowanie(self.wzorzec_po_niepelny)
+        lista_wezlow = list(k.graph.vertices())
+        k._sortuj_suma_przypisanych_kolorow_sasiadow(lista_wezlow)
+        po = [int(str(v)) for v in lista_wezlow]
+        self.assertEqual([0,2,3,4,5,1], po)
 
     def test_listy_przypisanych_kolorow_sasiadow(self):
         self.assertEqual([[4,5],[4],[1,2,3]], self.k_po._listy_przypisanych_kolorow_sasiadow(self.v0_po))
@@ -297,11 +349,52 @@ class KolorowanieTest(unittest.TestCase):
         v3_przed = list(k.graph.vertices())[3]
         self.assertEqual([1,2], k._koloruj_wierzcholek(v3_przed))
 
+    def test_koloruj(self):
+        k = Kolorowanie(self.wzorzec_przed)
+        k.koloruj()
+        self.assertEqual(True, k.sprawdzenie())
 
-    # def test_koloruj(self):
-    #     k = Kolorowanie(self.wzorzec_przed)
-    #     k.koloruj()
+    def test_koloruj2(self):
+        k = Kolorowanie(self.wzorzec_po_niepelny)
+        k.koloruj()
+        self.assertEqual(True, k.sprawdzenie())
 
+    def test_koloruj3(self):
+        k = Kolorowanie(self.wzorzec_zly_iloczyn)
+        k.koloruj()
+        # k.zapisz("dupa_po")
+        self.assertEqual(True, k.sprawdzenie())
+
+    def test_statystyki_z_pliku_po_kolorowaniu_duze(self):
+        statystyki = self.k_duze_po.statystyki()
+        self.assertEqual(30, statystyki['liczba_wierzcholkow'])
+        self.assertEqual(61, statystyki['liczba_krawedzi'])
+        self.assertEqual(16, statystyki['max_kolor'])
+        self.assertAlmostEqual(0.0588888888889, statystyki['sredni_wspolczynnik_klasteryzacji'], delta=0.0000001)
+        self.assertAlmostEqual(4.06666666667, statystyki['sredni_stopien_wierzcholka'], delta=0.0000001)
+        self.assertAlmostEqual(2.41333333333, statystyki['srednia_dlugosc_sciezki'], delta=0.0000001)
+        self.assertAlmostEqual(2.96666666667, statystyki['srednia_liczba_kolorow'], delta=0.0000001)
+
+    def test_statystyki_odrazu_po_kolorowaniu_duze(self):
+        k = Kolorowanie(self.wzorzec_duze_przed)
+        k.koloruj()
+        statystyki = k.statystyki()
+        self.assertEqual(30, statystyki['liczba_wierzcholkow'])
+        self.assertEqual(61, statystyki['liczba_krawedzi'])
+        self.assertEqual(16, statystyki['max_kolor'])
+        self.assertAlmostEqual(0.0588888888889, statystyki['sredni_wspolczynnik_klasteryzacji'], delta=0.0000001)
+        self.assertAlmostEqual(4.06666666667, statystyki['sredni_stopien_wierzcholka'], delta=0.0000001)
+        self.assertAlmostEqual(2.41333333333, statystyki['srednia_dlugosc_sciezki'], delta=0.0000001)
+        self.assertAlmostEqual(2.96666666667, statystyki['srednia_liczba_kolorow'], delta=0.0000001)
+
+    def test_sprawdzenie_z_pliku_po_kolorowaniu_duze(self):
+        k = Kolorowanie(self.wzorzec_duze_po)
+        self.assertTrue(k.sprawdzenie())
+
+    def test_sprawdzenie_odrazu_po_kolorowaniu_duze(self):
+        k = Kolorowanie(self.wzorzec_duze_przed)
+        k.koloruj()
+        self.assertTrue(k.sprawdzenie())
 
 
 

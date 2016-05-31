@@ -1,6 +1,6 @@
 graph G {
 0 [liczba_kolorow="1", przypisane_kolory="6"];
-1 [liczba_kolorow="3", przypisane_kolory="1, 2, 3"];
+1 [liczba_kolorow="4", przypisane_kolory="1, 2, 3"];
 2 [liczba_kolorow="2", przypisane_kolory="4, 5"];
 3 [liczba_kolorow="2", przypisane_kolory="4, 5"];
 4 [liczba_kolorow="1", przypisane_kolory="4"];
