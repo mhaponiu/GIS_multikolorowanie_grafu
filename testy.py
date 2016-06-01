@@ -260,15 +260,15 @@ class KolorowanieTest(unittest.TestCase):
     def test_sprawdzenie_fail_przedzial(self):
         self.assertRaises(CiagloscErrorWezla, self.k_zly_przedzial.sprawdzenie)
 
-    @unittest.skip('')
-    def test_zapisz(self):
-        self.k_po.zapisz('test_zapis')
-
-    @unittest.skip('')
-    def test_zapisz_z_pusta_lista_przypisanych_kolorow(self):
-        k = Kolorowanie(self.wzorzec_przed)
-        k._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
-        k.zapisz('test_zapis2')
+    # @unittest.skip('')
+    # def test_zapisz(self):
+    #     self.k_po.zapisz('test_zapis')
+    #
+    # @unittest.skip('')
+    # def test_zapisz_z_pusta_lista_przypisanych_kolorow(self):
+    #     k = Kolorowanie(self.wzorzec_przed)
+    #     k._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
+    #     k.zapisz('test_zapis2')
 
     def test_dodaj_wlasciwosc_przypisane_kolory(self):
         k = Kolorowanie(self.wzorzec_przed)
