@@ -161,23 +161,24 @@ def rysuj(e, c, kolor_wykresu):
 
 
 def produkuj_rysunek(output):
-    rysuj(e=10, c=4, kolor_wykresu='r.-')
-    red_patch = mpatches.Patch(color='red', label='e srednie: 10\nmax kolor 4')
+    rysuj(e=10, c=4, kolor_wykresu='g.-')
+    green_patch = mpatches.Patch(color='green', label='e srednie: 10\nmax kolor 4')
     # plt.legend(handles=[red_patch])
 
-    rysuj(e=50, c=4, kolor_wykresu='g.-')
-    green_patch = mpatches.Patch(color='green', label='e srednie: 50\nmax kolor: 4')
+    rysuj(e=50, c=4, kolor_wykresu='r.-')
+    red_patch = mpatches.Patch(color='red', label='e srednie: 50\nmax kolor: 4')
 
-    rysuj(e=50, c=15, kolor_wykresu='y.-')
-    yellow_patch = mpatches.Patch(color='yellow', label='e srednie: 50\nmax kolor: 15')
+    rysuj(e=50, c=15, kolor_wykresu='b.-')
+    blue_patch = mpatches.Patch(color='blue', label='e srednie: 50\nmax kolor: 15')
 
-    plt.legend(handles=[red_patch, green_patch, yellow_patch], loc=2)
+    plt.legend(handles=[red_patch, green_patch, blue_patch], loc=2)
 
-    plt.savefig("zestawienie_nowe")
+    plt.savefig(output)
 
 
 
 if __name__ == '__main__':
+    logging.warning('czas wykonania profilowania i wygenerowania wykresu to kilka godzin (2-3h)')
     profiluj()
-    produkuj_rysunek("zestawienie_nowe")
+    produkuj_rysunek("zestawienie")
     # czas wykonania okolo 3h
