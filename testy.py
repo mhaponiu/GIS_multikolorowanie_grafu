@@ -1,17 +1,15 @@
+import numpy
 import unittest
 from graph_tool import Graph
 from graph_tool.clustering import local_clustering
 from graph_tool.stats import vertex_average
 
-import numpy
-
-from Errors import CiagloscError, IloczynNiePusty, GISBaseException, IloczynNiePustyWezlow, CiagloscErrorWezla, \
+from Errors import CiagloscError, IloczynNiePusty, IloczynNiePustyWezlow, CiagloscErrorWezla, \
     PropertyError, LiczebnoscKolorowError
 from kolorowanie import Kolorowanie, Sprawdzenie, StatInfo
 
 
 class Wzorzec_przed(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.wzorzec_przed = 'dane_testowe/wzorzec_przed.dot'
@@ -30,7 +28,7 @@ class Wzorzec_przed(unittest.TestCase):
             self.assertEqual(self.g.vertex_index[tuple[0]], tuple[1])
 
     def test_iter_vertex_liczba_kolorow(self):
-        liczby_kolorow = [1,3,2,2,1,1]
+        liczby_kolorow = [1, 3, 2, 2, 1, 1]
         for tuple in zip(self.g.vertices(), liczby_kolorow):
             self.assertEqual(int(self.g.vertex_properties['liczba_kolorow'][tuple[0]]),
                              tuple[1])
@@ -49,6 +47,7 @@ class Wzorzec_po(unittest.TestCase):
     def test_przypisane_kolory(self):
         v1 = list(self.g.vertices())[1]
         self.assertEqual(set(self.k.spr._przypisane_kolory(v1)), set([1, 2, 3]))
+
 
 class Sprawdzenie_test(unittest.TestCase):
     @classmethod
@@ -93,28 +92,27 @@ class Sprawdzenie_test(unittest.TestCase):
 
     def test_przypisane_kolory(self):
         v1 = list(self.spr.graph.vertices())[1]
-        self.assertEqual(set(self.spr._przypisane_kolory(v1)), set([1,2,3]))
+        self.assertEqual(set(self.spr._przypisane_kolory(v1)), set([1, 2, 3]))
 
     def test_sprawdz_wezel1(self):
-        v1 = list(self.spr.graph.vertices())[1] #kolory 1,2,3
+        v1 = list(self.spr.graph.vertices())[1]  # kolory 1,2,3
         self.assertTrue(self.spr._sprawdz_wezel(v1, set([])))
 
     def test_sprawdz_wezel2(self):
-        v1 = list(self.spr.graph.vertices())[1] #kolory 1,2,3
+        v1 = list(self.spr.graph.vertices())[1]  # kolory 1,2,3
         self.assertRaises(IloczynNiePusty,
                           self.spr._sprawdz_wezel,
                           v1, set([1]))
 
     def test_sprawdz_wezel3(self):
-        v1 = list(self.spr.graph.vertices())[1] #kolory 1,2,3
+        v1 = list(self.spr.graph.vertices())[1]  # kolory 1,2,3
         self.assertRaises(IloczynNiePusty,
                           self.spr._sprawdz_wezel,
-                          v1, set([3,4,5]))
+                          v1, set([3, 4, 5]))
 
     def test_sprawdz_wezel4(self):
-        v1 = list(self.spr.graph.vertices())[1] #kolory 1,2,3
+        v1 = list(self.spr.graph.vertices())[1]  # kolory 1,2,3
         self.assertTrue(self.spr._sprawdz_wezel(v1, set([4, 5])))
-
 
     def test_sprawdz_sasiadow(self):
         v1 = list(self.spr.graph.vertices())[1]  # kolory 1,2,3
@@ -139,17 +137,16 @@ class Sprawdzenie_test(unittest.TestCase):
 
     def test_sprawdz_zly_iloczyn(self):
         self.assertRaises(IloczynNiePustyWezlow, self.spr_zly_iloczyn.sprawdz)
-        # self.spr_zly_iloczyn.sprawdz()
 
     def test_sprawdz_zla_liczebnosc_przypisanych_kolorow(self):
         self.assertRaises(LiczebnoscKolorowError, self.spr_zla_liczebnosc.sprawdz)
 
     def test_sprawdz_zly_nieciagly_przedzial(self):
         self.assertRaises(CiagloscErrorWezla, self.spr_zly_nieciagly_przedzial.sprawdz)
-        # self.spr_zly_nieciagly_przedzial.sprawdz()
 
     def test_brak_wlasciwosci_w_wezle(self):
         self.assertRaises(PropertyError, self.spr_przed.sprawdz)
+
 
 class StatInfoTest(unittest.TestCase):
     @classmethod
@@ -175,7 +172,7 @@ class StatInfoTest(unittest.TestCase):
     def test_sredni_wspolczynnik_klasteryzacji_na_sztywno_graf_pelny(self):
         # self.assertEqual(7. / 15, self.stat.sredni_wspolczynnik_klasteryzacji_moj())
         # print self.stat.sredni_wspolczynnik_klasteryzacji_moj()
-        g=Graph(directed=False)
+        g = Graph(directed=False)
         v0 = g.add_vertex()
         v1 = g.add_vertex()
         v2 = g.add_vertex()
@@ -200,7 +197,6 @@ class StatInfoTest(unittest.TestCase):
 
 
 class KolorowanieTest(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         wzorzec_po = 'dane_testowe/wzorzec_po.dot'
@@ -225,7 +221,7 @@ class KolorowanieTest(unittest.TestCase):
         cls.v1_bez_wl = list(cls.k_bez_wl.graph.vertices())[1]
 
         cls.wzorzec_po_niepelny = 'dane_testowe/wzorzec_po_niepelny.dot'
-        cls.k_niepelny= Kolorowanie(cls.wzorzec_po_niepelny)
+        cls.k_niepelny = Kolorowanie(cls.wzorzec_po_niepelny)
         cls.v5_niepelny = list(cls.k_niepelny.graph.vertices())[5]
         cls.v0_niepelny = list(cls.k_niepelny.graph.vertices())[0]
         cls.v1_niepelny = list(cls.k_niepelny.graph.vertices())[1]
@@ -243,13 +239,13 @@ class KolorowanieTest(unittest.TestCase):
         self.assertRaises(PropertyError, self.k_bez_wl._liczba_kolorow, self.v1_bez_wl)
 
     def test_przypisane_kolory_pass(self):
-        self.assertEqual([1,2,3], self.k_po._przypisane_kolory(self.v1_po))
+        self.assertEqual([1, 2, 3], self.k_po._przypisane_kolory(self.v1_po))
 
     def test_przypisane_kolory_fail(self):
         self.assertRaises(PropertyError, self.k_przed._przypisane_kolory, self.v1_przed)
 
     def test_przypisane_kolory_puste(self):
-        self.assertEqual(0,len(self.k_niepelny._przypisane_kolory(self.v5_niepelny)))
+        self.assertEqual(0, len(self.k_niepelny._przypisane_kolory(self.v5_niepelny)))
 
     def test_sprawdzenie_pass(self):
         self.assertTrue(self.k_po.sprawdzenie())
@@ -259,16 +255,6 @@ class KolorowanieTest(unittest.TestCase):
 
     def test_sprawdzenie_fail_przedzial(self):
         self.assertRaises(CiagloscErrorWezla, self.k_zly_przedzial.sprawdzenie)
-
-    # @unittest.skip('')
-    # def test_zapisz(self):
-    #     self.k_po.zapisz('test_zapis')
-    #
-    # @unittest.skip('')
-    # def test_zapisz_z_pusta_lista_przypisanych_kolorow(self):
-    #     k = Kolorowanie(self.wzorzec_przed)
-    #     k._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
-    #     k.zapisz('test_zapis2')
 
     def test_dodaj_wlasciwosc_przypisane_kolory(self):
         k = Kolorowanie(self.wzorzec_przed)
@@ -281,14 +267,14 @@ class KolorowanieTest(unittest.TestCase):
         lista_wierzch = list(k.graph.vertices())
         k._sortuj_liczba_kolorow(lista_wierzch)
         po = [int(str(v)) for v in lista_wierzch]
-        self.assertEqual([1,2,3,0,4,5], po)
+        self.assertEqual([1, 2, 3, 0, 4, 5], po)
 
     def test_sortuj_stopien(self):
         k = Kolorowanie(self.wzorzec_przed)
         lista_wierzch = list(k.graph.vertices())
         k._sortuj_stopien(lista_wierzch)
         po = [int(str(v)) for v in lista_wierzch]
-        self.assertEqual([1,0,2,4,3,5], po)
+        self.assertEqual([1, 0, 2, 4, 3, 5], po)
 
     def test_suma_kolorow_sasiadow(self):
         self.assertEqual(6, self.k_po._suma_kolorow_sasiadow(self.v0_po))
@@ -303,20 +289,20 @@ class KolorowanieTest(unittest.TestCase):
         lista_wezlow = list(k.graph.vertices())
         k._sortuj_suma_przypisanych_kolorow_sasiadow(lista_wezlow)
         po = [int(str(v)) for v in lista_wezlow]
-        self.assertEqual([0,2,3,4,5,1], po)
+        self.assertEqual([0, 2, 3, 4, 5, 1], po)
 
     def test_listy_przypisanych_kolorow_sasiadow(self):
-        self.assertEqual([[4,5],[4],[1,2,3]], self.k_po._listy_przypisanych_kolorow_sasiadow(self.v0_po))
+        self.assertEqual([[4, 5], [4], [1, 2, 3]], self.k_po._listy_przypisanych_kolorow_sasiadow(self.v0_po))
 
     def test_zbior(self):
-        self.assertEqual(set([1,2,3,4,5,7,8]), self.k_po._zbior([[4,5],[7,8],[1,2,3]]))
+        self.assertEqual(set([1, 2, 3, 4, 5, 7, 8]), self.k_po._zbior([[4, 5], [7, 8], [1, 2, 3]]))
 
     def test_znajdz_dziure(self):
-        zbior = set([3,4,7,8,10])
+        zbior = set([3, 4, 7, 8, 10])
         self.assertEqual([[1, 2], [5, 6], [9]], list(self.k_po._generuj_dziure(zbior)))
 
     def test_znajdz_dziure2(self):
-        zbior = set([1,2,3,4,7,8,10])
+        zbior = set([1, 2, 3, 4, 7, 8, 10])
         self.assertEqual([[5, 6], [9]], list(self.k_po._generuj_dziure(zbior)))
 
     def test_znajdz_dziure3(self):
@@ -324,15 +310,15 @@ class KolorowanieTest(unittest.TestCase):
         self.assertEqual([[5, 6]], list(self.k_po._generuj_dziure(zbior)))
 
     def test_znajdz_dziure4(self):
-        zbior = set([1,2,3,4])
-        self.assertEqual([],  list(self.k_po._generuj_dziure(zbior)))
+        zbior = set([1, 2, 3, 4])
+        self.assertEqual([], list(self.k_po._generuj_dziure(zbior)))
 
     def test_znajdz_dziure5(self):
-        zbior = set() #czyli wszyscy sasiedzi jeszcze pusci
+        zbior = set()  # czyli wszyscy sasiedzi jeszcze pusci
         self.assertEqual([], list(self.k_po._generuj_dziure(zbior)))
 
     def test_koloruj_wierzcholek(self):
-        self.assertEqual([1,2,3], self.k_po._koloruj_wierzcholek(self.v1_po))
+        self.assertEqual([1, 2, 3], self.k_po._koloruj_wierzcholek(self.v1_po))
 
     def test_koloruj_wierzcholek2(self):
         self.assertEqual([6], self.k_po._koloruj_wierzcholek(self.v0_po))
@@ -347,7 +333,7 @@ class KolorowanieTest(unittest.TestCase):
         k = Kolorowanie(self.wzorzec_przed)
         k._dodaj_i_inicjuj_wlasciwosc_przypisane_kolory()
         v3_przed = list(k.graph.vertices())[3]
-        self.assertEqual([1,2], k._koloruj_wierzcholek(v3_przed))
+        self.assertEqual([1, 2], k._koloruj_wierzcholek(v3_przed))
 
     def test_koloruj(self):
         k = Kolorowanie(self.wzorzec_przed)
@@ -362,7 +348,6 @@ class KolorowanieTest(unittest.TestCase):
     def test_koloruj3(self):
         k = Kolorowanie(self.wzorzec_zly_iloczyn)
         k.koloruj()
-        # k.zapisz("dupa_po")
         self.assertEqual(True, k.sprawdzenie())
 
     def test_statystyki_z_pliku_po_kolorowaniu_duze(self):
@@ -395,7 +380,3 @@ class KolorowanieTest(unittest.TestCase):
         k = Kolorowanie(self.wzorzec_duze_przed)
         k.koloruj()
         self.assertTrue(k.sprawdzenie())
-
-
-
-
